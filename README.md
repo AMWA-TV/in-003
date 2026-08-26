@@ -1,7 +1,7 @@
-# \[Work In Progress\] AMWA IN-TEMPLATE: Template for AMWA Increments
+# \[Work In Progress\] AMWA IN-003: Compute Resource Management Manifest and Examples
 
-[![Lint Status](https://github.com/AMWA-TV/in-template/workflows/Lint/badge.svg)](https://github.com/AMWA-TV/in-template/actions?query=workflow%3ALint)
-[![Render Status](https://github.com/AMWA-TV/in-template/workflows/Render/badge.svg)](https://github.com/AMWA-TV/in-template/actions?query=workflow%3ARender)
+[![Lint Status](https://github.com/AMWA-TV/in-003/workflows/Lint/badge.svg)](https://github.com/AMWA-TV/in-003/actions?query=workflow%3ALint)
+[![Render Status](https://github.com/AMWA-TV/in-003/workflows/Render/badge.svg)](https://github.com/AMWA-TV/in-003/actions?query=workflow%3ARender)
 
 This repository holds the source for this AMWA Increment from the [Advanced Media Workflow Association](https://amwa.tv)
 
@@ -22,6 +22,6 @@ This repository holds the source for this AMWA Increment from the [Advanced Medi
 
 - It contains [examples of documentation](docs/Overview.md) useful in AMWA Increments
 - It provides a style guide and other advice for authors
-- Select `AMWA-TV/in-template` as the template when creating the new repo
+- Select `AMWA-TV/in-003` as the template when creating the new repo
 
 <!-- INTRO-END -->

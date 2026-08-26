@@ -1,4 +1,4 @@
-# AMWA IN-TEMPLATE: Template for AMWA Increments
+# Compute Resource Management Manifest and Examples
 
 
 _(c) AMWA 2021, CC Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)_
