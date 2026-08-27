@@ -1,0 +1,168 @@
+# SPDX-FileCopyrightText: 2026 Contributors to the Media eXchange Layer project.
+# SPDX-License-Identifier: Apache-2.0
+
+message ("-- Building fabrics library with libfabric/ofi")
+
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(libfabric REQUIRED IMPORTED_TARGET libfabric)
+
+if (NOT TARGET spdlog::spdlog)
+    find_package(spdlog CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET fmt::fmt)
+    find_package(fmt CONFIG REQUIRED)
+endif()
+
+add_library(mxl-fabrics-objects OBJECT)
+target_compile_features(mxl-fabrics-objects
+        PRIVATE
+            cxx_std_20
+    )
+target_sources(mxl-fabrics-objects
+        PRIVATE
+            src/fabrics.cpp
+            src/internal/Address.cpp
+            src/internal/AddressVector.cpp
+            src/internal/AudioBounceBuffer.cpp
+            src/internal/Completion.cpp
+            src/internal/CompletionQueue.cpp
+            src/internal/DataLayout.cpp
+            src/internal/Domain.cpp
+            src/internal/Endpoint.cpp
+            src/internal/Event.cpp
+            src/internal/EventQueue.cpp
+            src/internal/Exception.cpp
+            src/internal/FILogging.cpp
+            src/internal/Fabric.cpp
+            src/internal/FabricAddress.cpp
+            src/internal/FabricInfo.cpp
+            src/internal/FabricInfoHelpers.cpp
+            src/internal/FabricInstance.cpp
+            src/internal/FabricVersion.cpp
+            src/internal/FabricInterfaceProbe.cpp
+            src/internal/FabricInterfaceList.cpp
+            src/internal/FabricInterfaceDescription.cpp
+            src/internal/Format.cpp
+            src/internal/ImmData.cpp
+            src/internal/Initiator.cpp
+            src/internal/LocalRegion.cpp
+            src/internal/MemoryRegion.cpp
+            src/internal/PassiveEndpoint.cpp
+            src/internal/Protocol.cpp
+            src/internal/ProtocolEgressRMA.cpp
+            src/internal/ProtocolIngressRMA.cpp
+            src/internal/Provider.cpp
+            src/internal/ProviderConfig.cpp
+            src/internal/RCInitiator.cpp
+            src/internal/RCTarget.cpp
+            src/internal/RDMInitiator.cpp
+            src/internal/RDMTarget.cpp
+            src/internal/Region.cpp
+            src/internal/RegisteredRegion.cpp
+            src/internal/RemoteRegion.cpp
+            src/internal/SliceRange.cpp
+            src/internal/Target.cpp
+            src/internal/TargetInfo.cpp
+    )
+target_link_libraries(mxl-fabrics-objects
+        PRIVATE
+            mxl-internal-headers
+            mxl-fabrics-headers
+            PkgConfig::libfabric
+)
+set_target_properties(mxl-fabrics-objects
+        PROPERTIES
+            POSITION_INDEPENDENT_CODE ${MXL_POSITION_INDEPENDENT_CODE}
+            C_EXTENSIONS              OFF
+            CXX_EXTENSIONS            OFF
+    )
+target_include_directories(mxl-fabrics-objects
+        PUBLIC
+            "${CMAKE_CURRENT_LIST_DIR}/src/internal"
+    )
+
+# Enable LTO/IPO on target if enabled and supported
+mxl_enable_target_ipo(mxl-fabrics-objects)
+
+add_library(mxl-fabrics)
+add_library(${PROJECT_NAME}::mxl-fabrics ALIAS mxl-fabrics)
+
+target_sources(mxl-fabrics
+        PRIVATE
+            $<TARGET_OBJECTS:mxl-fabrics-objects>
+)
+
+set_target_properties(mxl-fabrics
+        PROPERTIES
+            POSITION_INDEPENDENT_CODE ${MXL_POSITION_INDEPENDENT_CODE}
+            VISIBILITY_INLINES_HIDDEN ON
+            C_VISIBILITY_PRESET       hidden
+            CXX_VISIBILITY_PRESET     hidden
+            C_EXTENSIONS              OFF
+            CXX_EXTENSIONS            OFF
+            VERSION                   "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
+            SOVERSION                 "${PROJECT_VERSION_MAJOR}"
+    )
+
+target_link_libraries(mxl-fabrics
+        PUBLIC
+            mxl
+            mxl-fabrics-headers
+            PkgConfig::libfabric
+        PRIVATE
+            spdlog::spdlog
+            fmt::fmt
+      )
+
+# Add common linker options
+mxl_add_common_target_link_options(mxl-fabrics PRIVATE)
+# Enable LTO/IPO on target if enabled and supported
+mxl_enable_target_ipo(mxl-fabrics)
+
+include(CMakePackageConfigHelpers)
+
+set(MXL_FABRICS_CMAKE_CONFIG_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+install(TARGETS mxl-fabrics EXPORT ${PROJECT_NAME}-targets
+        COMPONENT ${PROJECT_NAME}-lib
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+
+# Generate a pkg-config file
+set(MXL_PKGCONFIG_PREFIX       "${CMAKE_INSTALL_PREFIX}")
+set(MXL_PKGCONFIG_LIBDIR       "${CMAKE_INSTALL_FULL_LIBDIR}")
+set(MXL_PKGCONFIG_INCLUDEDIR   "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
+set(MXL_PKGCONFIG_EXTRA_CFLAGS "")
+configure_file(
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/libmxl-fabrics.pc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/libmxl-fabrics.pc
+        @ONLY
+    )
+# Test-only .pc file in the build dir for pre-install test.
+if (BUILD_TESTS)
+    set(MXL_PKGCONFIG_PREFIX       "${CMAKE_CURRENT_BINARY_DIR}")
+    set(MXL_PKGCONFIG_LIBDIR       "${CMAKE_CURRENT_BINARY_DIR}")
+    set(MXL_PKGCONFIG_INCLUDEDIR   "${CMAKE_SOURCE_DIR}/lib/include")
+    set(MXL_PKGCONFIG_EXTRA_CFLAGS "-I${CMAKE_SOURCE_DIR}/lib/fabrics/include")
+    
+    set(MXL_PKGCONFIG_TEST_DIR  "${CMAKE_BINARY_DIR}/pkgconfig_test")
+    file(MAKE_DIRECTORY "${MXL_PKGCONFIG_TEST_DIR}")
+
+    configure_file(
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/libmxl-fabrics.pc.in
+        ${MXL_PKGCONFIG_TEST_DIR}/libmxl-fabrics.pc
+        @ONLY
+    )
+endif()
+
+# Install the generated pkg-config file
+install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/libmxl-fabrics.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+        COMPONENT ${PROJECT_NAME}-dev
+    )
+

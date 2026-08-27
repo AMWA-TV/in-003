@@ -1,0 +1,149 @@
+// SPDX-FileCopyrightText: 2026 Contributors to the Media eXchange Layer project.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <rdma/fabric.h>
+#include "DataLayout.hpp"
+#include "Endpoint.hpp"
+#include "Region.hpp"
+#include "SliceRange.hpp"
+#include "Target.hpp"
+#include "TargetInfo.hpp"
+
+namespace mxl::lib::fabrics::ofi
+{
+    /** \brief Interface for post-processing on transfer reception.
+     *
+     * Allows to abstract away any post-processing that needs to be done after a transfer completes. */
+    class IngressProtocol
+    {
+    public:
+        virtual ~IngressProtocol() = default;
+
+        /** \brief Register local memory regions used in this protocol.
+         * \param domain The domain to register memory with.
+         * \return A vector of RemoteRegion representing the registered memory regions for remote access.
+         */
+        [[nodiscard]]
+        virtual std::vector<RemoteRegion> registerMemory(std::shared_ptr<Domain> domain) = 0;
+
+        [[nodiscard]]
+        virtual std::optional<TargetInfoBounceBufferInfo> bounceBufferInfo() const = 0;
+
+        /** \brief Start receiving.
+         */
+        virtual void start(Endpoint const& endpoint) = 0;
+
+        /** \brief Process a completion with the given immediate data.
+         * \param endpoint The endpoint associated with the completion
+         * \param completion The completion object to process.
+         */
+        [[nodiscard]]
+        virtual std::optional<Target::ReadResult> read(Endpoint const& endpoint, Completion const& completion) = 0;
+
+        /** \brief Check if this protocol can read grains.
+         */
+        [[nodiscard]]
+        virtual bool canReadGrains() const noexcept = 0;
+
+        /** \brief Check if this protocol can read samples.
+         */
+        [[nodiscard]]
+        virtual bool canReadSamples() const noexcept = 0;
+
+        /** \brief Destroy the protocol object.
+         */
+        virtual void reset() = 0;
+    };
+
+    /** \brief Interface for transfer operations.
+     *
+     * Used to abstract away the details of how data is transferred to remote targets.
+     */
+    class EgressProtocol
+    {
+    public:
+        virtual ~EgressProtocol() = default;
+
+        /** \brief Register local memory regions used in this protocol.
+         * \param domain The domain to register memory with.
+         * \note This is used to register additional local memory regions. One example of this, is in the case where there is a metadata header that
+         * needs to be transferred along with the actual data, and the header is stored in a different memory region from the data. And such memory
+         * region can only be created after the protocol template creates the protocol instance since the header content is only known after the
+         * instance is created.
+         */
+        virtual void registerMemory(std::shared_ptr<Domain> domain) = 0;
+
+        /** \brief Transfer a grain to a remote target.
+         * \param localRegion The local region to transfer from.
+         * \param remoteIndex The index of the remote grain to transfer to.
+         * \param payloadOffset The payload offset within the grain.
+         * \param sliceRange The range of slices to transfer.
+         * \param destAddr The destination address. This is ignored for connection-oriented endpoints.
+         */
+        virtual void transferGrain(Endpoint const& ep, std::uint64_t localIndex, std::uint64_t remoteIndex, std::uint32_t payloadOffset,
+            SliceRange const& sliceRange, ::fi_addr_t destAddr = FI_ADDR_UNSPEC) = 0;
+
+        /** \brief Transfer samples to a remote target.
+         * \param headIndex The head index of the samples to transfer.
+         * \param count The number of samples per channel to transfer.
+         * \param destAddr The destination address. This is ignored for connection-oriented endpoints.
+         */
+        virtual void transferSamples(Endpoint const& ep, std::uint64_t headIndex, std::size_t count, ::fi_addr_t destAddr = FI_ADDR_UNSPEC) = 0;
+
+        /** \brief Process a completion event. Any post-processing after a transfer should be done here.
+         */
+        virtual void processCompletion(Completion::Data const& completion) = 0;
+
+        /** \brief Check if there is uncompleted requests.
+         */
+        [[nodiscard]]
+        virtual bool hasPendingWork() const = 0;
+
+        /** \brief Destroy the protocol object.
+         * \return The number of pending transfers.
+         */
+        virtual std::size_t reset() = 0;
+    };
+
+    /**
+     * Base template for an egress protocol. The template registers memory and allocates other resources
+     * that can be used across multiple instances of the protocol.
+     */
+    class EgressProtocolTemplate
+    {
+    public:
+        virtual ~EgressProtocolTemplate() = default;
+
+        /** \brief Register memory required by the protocol.
+         */
+        virtual void registerMemory(std::shared_ptr<Domain> domain) = 0;
+
+        /** \brief Create a new instance of the protocol for a remote target.
+         */
+        [[nodiscard]]
+        virtual std::unique_ptr<EgressProtocol> createInstance(Completion::Token token, TargetInfo remoteInfo) = 0;
+    };
+
+    /** \brief Select an appropriate ingress protocol based on the data layout
+     * \param layout The data layout.
+     * \param regions The regions involved.
+     * \param maxSyncBatchSize The maximum batch size for transfers.
+     * \return A unique pointer to the selected ingress protocol.
+     */
+    [[nodiscard]]
+    std::unique_ptr<IngressProtocol> selectIngressProtocol(DataLayout const& layout, std::vector<Region> regions, std::uint32_t maxSyncBatchSize);
+
+    /** \brief Select an appropriate egress protocol based on the data layout
+     * \param layout The data layout.
+     * \param regions The regions involved.
+     * \return A unique pointer to the selected egress protocol.
+     */
+    [[nodiscard]]
+    std::unique_ptr<EgressProtocolTemplate> selectEgressProtocol(DataLayout const& layout, std::vector<Region> regions);
+}

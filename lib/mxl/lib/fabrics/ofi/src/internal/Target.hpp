@@ -1,0 +1,146 @@
+// SPDX-FileCopyrightText: 2026 Contributors to the Media eXchange Layer project.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <variant>
+#include "TargetInfo.hpp"
+
+namespace mxl::lib::fabrics::ofi
+{
+
+    /** \brief Provider-independent tuning options for target setup.
+     *
+     * Groups the optional knobs that influence how a target is created so that
+     * new tunables can be added without changing the setup() signatures.
+     */
+    struct TargetSetupOptions
+    {
+        /** \brief Desired completion-queue depth.
+         *
+         * When left empty the implementation default
+         * (CompletionQueue::Attributes::DEFAULT_SIZE) is used.
+         */
+        std::optional<std::size_t> cqDepth;
+    };
+
+    /** \brief Abstract base class for Target implementations.
+     */
+    class Target
+    {
+    public:
+        /** \brief Result of a read operation.
+         */
+        struct GrainReadResult
+        {
+            std::uint64_t grainIndex;
+        };
+
+        struct SampleReadResult
+        {
+            std::uint64_t headIndex;
+            std::size_t count;
+        };
+
+        struct Interrupted
+        {};
+
+        using ReadResult = std::variant<GrainReadResult, SampleReadResult, Interrupted>;
+
+    public:
+        virtual ~Target() = default;
+
+        /** \brief Determine if new data can be consumed.
+         *
+         * A non-blocking operation that also drives the connection forward. Continuous invocation of this function is necessary for connection
+         * establishment and ongoing progress.
+         */
+        virtual std::optional<ReadResult> read() = 0;
+
+        /** \brief Determine if new data can be consumed.
+         *
+         * A blocking version of readGrain. see readGrain().
+         */
+        virtual std::optional<ReadResult> readBlocking(std::chrono::steady_clock::duration timeout) = 0;
+
+        /** \brief Shut down the target gracefully.
+         * Initiates a graceful shutdown of the target and blocks until the shutdown is complete.
+         * Can throw an exception if the shutdown is not successful. If this function throws the
+         * target can now longer be used.
+         */
+        virtual void shutdown() = 0;
+
+        /** \brief Represent an immediate data
+         */
+        struct ImmediateDataLocation
+        {
+        public:
+            /** \brief Get the underlying local region of the immediate data.
+             */
+            [[nodiscard]]
+            LocalRegion toLocalRegion() const noexcept;
+
+        public:
+            std::uint64_t data; /**< The immediate data value. Libfabric uses a uint64_t, but some provider might only transfer 4 bytes. (Verbs) */
+        };
+    };
+
+    /** \brief A wrapper around Target implementations.
+     *
+     * This wrapper creates an unspecified target that can be configured for
+     * a specific type by calling the setup() method.
+     */
+    class TargetWrapper
+    {
+    public:
+        /** \brief Convert an mxlFabricsTarget API object to its underlying TargetWrapper.
+         *
+         * \param api The mxlFabricsTarget to convert.
+         * \return The TargetWrapper underlying the given mxlFabricsTarget.
+         */
+        [[nodiscard]]
+        static TargetWrapper* fromAPI(mxlFabricsTarget api) noexcept;
+
+        /** \brief Convert this TargetWrapper to its API representation.
+         *
+         * \return The mxlFabricsTarget representing this TargetWrapper.
+         */
+        [[nodiscard]]
+        mxlFabricsTarget toAPI() noexcept;
+
+        /** \copydoc Target::readGrain()
+         */
+        std::optional<Target::ReadResult> read();
+
+        /** \copydoc Target::readGrainBlocking(std::chrono::steady_clock::duration)
+         */
+        std::optional<Target::ReadResult> readBlocking(std::chrono::steady_clock::duration timeout);
+
+        /** \brief Set up the target with the specified configuration.
+         *
+         * This method initializes the underlying target implementation
+         * based on the provided configuration.
+         *
+         * \param config The configuration to use for setting up the target.
+         * \param options Optional tuning parameters (e.g. completion queue depth).
+         */
+        [[nodiscard]]
+        std::unique_ptr<TargetInfo> setup(mxlFabricsTargetConfig const& config, TargetSetupOptions const& options = {});
+
+    private:
+        /** \brief Set up the correct concrete target type internally and returns the target info
+         * \param config Target configuration passed by the user.
+         * \param info Fabric info already resolved from the interface config.
+         */
+        template<typename TargetT>
+        [[nodiscard]]
+        std::unique_ptr<TargetInfo> setup(mxlFabricsTargetConfig const& config, FabricInfoView info, TargetSetupOptions const& options = {});
+
+        std::unique_ptr<Target> _inner; /**< The underlying target implementation. */
+    };
+}
