@@ -1,0 +1,4 @@
+[submodule "mxl"]
+	path = lib/mxl
+	url = https://github.com/dmf-mxl/mxl.git
+	branch = main
