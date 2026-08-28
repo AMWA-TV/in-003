@@ -77,9 +77,9 @@ jobs:
           test "$(sed -n '1p' README.md)" = "$(sed -n '1p' docs/index.md)"
           test -s docs/example/riedel-mxl-sink-demo/HOWTO.md
           test -s docs/example/riedel-mxl-sink-demo/build_container.md
-          test -s docs/manifest/resource_manifest_video.yaml
           test -s docs/manifest/resource_manifest_video.md
           test -s docs/manifest/validate_manifest.md
+          grep -Fq "Expand all" docs/manifest/resource_manifest_video.md
 
       - run: zensical build --clean
 
@@ -91,7 +91,12 @@ jobs:
           test -s site/example/riedel-mxl-sink-demo/build_container/index.html
           test -s site/manifest/resource_manifest_video/index.html
           test -s site/manifest/validate_manifest/index.html
-          grep -Fq "MxlMediaFunctionParameters" site/manifest/resource_manifest_video/index.html
+          grep -Fq "Expand all" site/manifest/resource_manifest_video/index.html
+          grep -Fq "Collapse all" site/manifest/resource_manifest_video/index.html
+          grep -Fq "Folding" site/manifest/resource_manifest_video/index.html
+          grep -Fq "Raw" site/manifest/resource_manifest_video/index.html
+          grep -Fq "source-viewer" site/manifest/resource_manifest_video/index.html
+          grep -Fq "data-source=" site/manifest/resource_manifest_video/index.html
 
       - name: Install lychee
         run: sudo snap install lychee

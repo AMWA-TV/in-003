@@ -47,21 +47,27 @@ sed -E \
 echo "Generated docs/index.md from README.md"
 
 # ---------------------------------------------------------------------------
-# 2. Stage repository-root examples and manifests in the Zensical source tree
+# 2. Stage Markdown documentation from repository-root examples and manifests
+#    in the Zensical source tree. Source assets are not copied into docs/;
+#    they are embedded in the generated source pages below.
 # ---------------------------------------------------------------------------
 for dir in example manifest; do
     rm -rf "docs/${dir}"
     if [[ -d "${dir}" ]]; then
-        cp -R "${dir}" "docs/${dir}"
+        while IFS= read -r -d '' source; do
+            destination="docs/${source}"
+            mkdir -p "$(dirname "${destination}")"
+            cp "${source}" "${destination}"
+        done < <(find "${dir}" -type f -name '*.md' -print0)
     fi
 done
 
-echo "Staged example/ and manifest/ in docs/"
+echo "Staged Markdown documentation from example/ and manifest/ in docs/"
 
 # ---------------------------------------------------------------------------
 # 3. Generate Markdown pages for source files that Zensical cannot render
-#    directly. The original files remain alongside the generated pages as
-#    downloadable assets.
+#    directly. The editor-style viewer keeps the original text and folds
+#    contiguous blocks based on source indentation.
 # ---------------------------------------------------------------------------
 render_source_file() {
     local source="$1"
@@ -69,6 +75,7 @@ render_source_file() {
     local filename
     local output="docs/${relative%.*}.md"
     local language
+    local encoded
 
     filename="$(basename "${source}")"
 
@@ -80,13 +87,32 @@ render_source_file() {
         *)            return 0 ;;
     esac
 
+    encoded="$(python3 - "${source}" <<'PY'
+import base64
+import sys
+
+with open(sys.argv[1], "rb") as source_file:
+    print(base64.b64encode(source_file.read()).decode("ascii"))
+PY
+)"
+
     mkdir -p "$(dirname "${output}")"
     {
         printf '# `%s`\n\n' "${filename}"
-        printf '[Download the original file](%s)\n\n' "${filename}"
-        printf '```%s\n' "${language}"
-        cat "${source}"
-        printf '\n```\n'
+        printf '<div class="source-viewer" data-source="%s" data-language="%s">\n' "${encoded}" "${language}"
+        printf '  <label class="source-viewer-mode">View: <select data-source-mode>\n'
+        printf '    <option value="folding" selected>Folding</option>\n'
+        printf '    <option value="raw">Raw</option>\n'
+        printf '  </select></label>\n'
+        printf '  <div class="source-viewer-folding">\n'
+        printf '    <div class="source-viewer-controls" role="group" aria-label="Source controls">\n'
+        printf '      <button type="button" data-source-action="expand">Expand all</button>\n'
+        printf '      <button type="button" data-source-action="collapse">Collapse all</button>\n'
+        printf '    </div>\n'
+        printf '    <div class="source-editor" role="region" aria-label="Foldable source code"></div>\n'
+        printf '  </div>\n'
+        printf '  <pre class="source-viewer-raw" hidden><code></code></pre>\n'
+        printf '</div>\n'
     } > "${output}"
 }
 
@@ -98,7 +124,7 @@ for root in example manifest; do
     fi
 done
 
-echo "Generated Markdown source pages for example/ and manifest/"
+echo "Generated editor-style source pages for example/ and manifest/"
 
 # ---------------------------------------------------------------------------
 # 4. Rewrite docs/*.md links that escape the docs/ tree to absolute GitHub URLs

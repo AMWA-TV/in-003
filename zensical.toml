@@ -63,7 +63,7 @@ Copyright &copy; 2026 Advanced Media Workflow Association
 #
 # Read more: https://zensical.org/docs/customization/#additional-css
 #
-#extra_css = ["stylesheets/extra.css"]
+extra_css = ["stylesheets/source-viewer.css"]
 
 # With the `extra_javascript` option you can add your own JavaScript to your
 # project to customize the behavior according to your needs.
@@ -74,6 +74,7 @@ Copyright &copy; 2026 Advanced Media Workflow Association
 
 # MathJax has to be enabled specifically which stops auto-enabling of Mermaid so we have to add it back
 extra_javascript = [
+    "javascripts/source-viewer.js",
     "javascripts/mermaid.js",
     "javascripts/mathjax.js",
     "https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"
@@ -83,6 +84,7 @@ extra_javascript = [
 custom_fences = [
   { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
 ]
+
 
 [project.markdown_extensions.pymdownx.arithmatex]
 generic = true
