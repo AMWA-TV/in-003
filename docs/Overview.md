@@ -1,8 +1,6 @@
-# JT-DMF High Level
+# Overview
 
-## Overview
-
-![Architecture*High-level architecture diagram showing Media Functions, Media Function Services, Media Function Contexts, Management, Orchestration, and Applications/UI.*
+![DMF overall](images/DMF-overall.svg)
 
 ---
 
@@ -45,6 +43,8 @@ Resource requests, limits, and claims must be applied to individual containers (
 
 ## Proposed Domain Model
 
+![CRM Domain Model](images/crm-domain-model.drawio.png)
+
 ### Media Function
 
 - Represents a particular configured instance or session of a well-defined unit of functionality that produces and/or consumes a tightly coupled group of one or more live media streams.
@@ -65,15 +65,14 @@ These characteristics can be used to plan connections between compatible inputs 
 
 > Compute Resource Management could be appropriate at any of these levels.
 
-image_page_4
-
 ---
 
 ## Reconciliation in Kubernetes
 
-*From: "Why Implementing Kubernetes Operators Is a Good Idea!" (Kubermatic)*
+*Based on: "Why Implementing Kubernetes Operators Is a Good Idea!" (Kubermatic)*
 
-![Kubernetes Reconciliation lustrates the standard Kubernetes Operator reconciliation pattern:
+
+![Kubernetes Reconciliation](images/k8s-reconciliation.drawio.png) 
 
 1. Custom Resource contains:
    - Spec

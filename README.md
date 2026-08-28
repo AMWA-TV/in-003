@@ -1,6 +1,12 @@
 # \[Work In Progress\] AMWA IN-003: Compute Resource Management Manifest and Examples
 
-This repository holds the source for this AMWA Increment from the [Advanced Media Workflow Association](https://amwa.tv)
+[![Lint Status](https://github.com/AMWA-TV/in-003/actions/workflows/lint.yml/badge.svg)](https://github.com/AMWA-TV/in-003/actions/workflows/lint.yml)
+[![Zensical Render Status](https://github.com/AMWA-TV/in-003/actions/workflows/docs.yml/badge.svg)](https://github.com/AMWA-TV/in-003/actions/workflows/docs.yml)
+[![Legacy Render Status](https://github.com/AMWA-TV/in-003/workflows/Render/badge.svg)](https://github.com/AMWA-TV/in-003/actions?query=workflow%3ARender)
+[![License](https://img.shields.io/github/license/AMWA-TV/in-003)](https://github.com/AMWA-TV/in-003/blob/HEAD/LICENSE)
+[![Issues](https://img.shields.io/github/issues/AMWA-TV/in-003)](https://github.com/AMWA-TV/in-003/issues)
+
+This repository holds the source of a work artifact published as an **AMWA Increment (IN)** from the [Advanced Media Workflow Association](https://amwa.tv)
 
 <!-- INTRO-START -->
 

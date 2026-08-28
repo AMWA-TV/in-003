@@ -28,6 +28,10 @@ site_description = "AMWA IN-003: Compute Resource Management Manifest and Exampl
 # Read more: https://zensical.org/docs/setup/basics/#site_author
 site_author = "AMWA"
 
+# Link to the source repository shown in the page header.
+repo_url = "https://github.com/AMWA-TV/in-003"
+repo_name = "AMWA-TV/in-003"
+
 # The site_url is the canonical URL for your site. When building online
 # documentation you should set this.
 # Read more: https://zensical.org/docs/setup/basics/#site_url
