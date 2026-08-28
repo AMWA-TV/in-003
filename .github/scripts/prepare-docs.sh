@@ -47,12 +47,66 @@ sed -E \
 echo "Generated docs/index.md from README.md"
 
 # ---------------------------------------------------------------------------
-# 2. Rewrite docs/*.md links that escape the docs/ tree to absolute GitHub URLs
+# 2. Stage repository-root examples and manifests in the Zensical source tree
+# ---------------------------------------------------------------------------
+for dir in example manifest; do
+    rm -rf "docs/${dir}"
+    if [[ -d "${dir}" ]]; then
+        cp -R "${dir}" "docs/${dir}"
+    fi
+done
+
+echo "Staged example/ and manifest/ in docs/"
+
+# ---------------------------------------------------------------------------
+# 3. Generate Markdown pages for source files that Zensical cannot render
+#    directly. The original files remain alongside the generated pages as
+#    downloadable assets.
+# ---------------------------------------------------------------------------
+render_source_file() {
+    local source="$1"
+    local relative="${source#./}"
+    local filename
+    local output="docs/${relative%.*}.md"
+    local language
+
+    filename="$(basename "${source}")"
+
+    case "${source}" in
+        *.yaml|*.yml) language="yaml" ;;
+        *.py)         language="python" ;;
+        *.sh)         language="bash" ;;
+        Dockerfile|*/Dockerfile*) language="dockerfile" ;;
+        *)            return 0 ;;
+    esac
+
+    mkdir -p "$(dirname "${output}")"
+    {
+        printf '# `%s`\n\n' "${filename}"
+        printf '[Download the original file](%s)\n\n' "${filename}"
+        printf '```%s\n' "${language}"
+        cat "${source}"
+        printf '\n```\n'
+    } > "${output}"
+}
+
+for root in example manifest; do
+    if [[ -d "${root}" ]]; then
+        while IFS= read -r -d '' source; do
+            render_source_file "${source}"
+        done < <(find "${root}" -type f -print0)
+    fi
+done
+
+echo "Generated Markdown source pages for example/ and manifest/"
+
+# ---------------------------------------------------------------------------
+# 4. Rewrite docs/*.md links that escape the docs/ tree to absolute GitHub URLs
 #
 # Matches Markdown link targets of the form `](../<path>)`. The captured path
 # may contain further `../` segments (collapsed by the URL itself).
 #
-# 3. Remove lines relevant to Jekyll ToC processing
+# 5. Remove lines relevant to Jekyll ToC processing
 # ---------------------------------------------------------------------------
 shopt -s nullglob
 for f in docs/*.md; do

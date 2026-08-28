@@ -42,6 +42,12 @@ jobs:
           INPUT_REF: ${{ inputs.ref }}
         run: |
           git checkout "${INPUT_REF}" -- docs/ README.md
+          for dir in example manifest; do
+            rm -rf "${dir}"
+            if git cat-file -e "${INPUT_REF}:${dir}" 2>/dev/null; then
+              git checkout "${INPUT_REF}" -- "${dir}"
+            fi
+          done
 
       # Decide which ref name to use for URL rewriting in prepare-docs.sh.
       # For dispatched runs with an input, use that; otherwise fall back to
@@ -69,11 +75,23 @@ jobs:
           ./.github/scripts/prepare-docs.sh
           test -s docs/index.md
           test "$(sed -n '1p' README.md)" = "$(sed -n '1p' docs/index.md)"
+          test -s docs/example/riedel-mxl-sink-demo/HOWTO.md
+          test -s docs/example/riedel-mxl-sink-demo/build_container.md
+          test -s docs/manifest/resource_manifest_video.yaml
+          test -s docs/manifest/resource_manifest_video.md
+          test -s docs/manifest/validate_manifest.md
 
       - run: zensical build --clean
 
       - name: Verify landing page content
         run: grep -Fq "Compute Resource Management" site/index.html
+
+      - name: Verify example and manifest pages
+        run: |
+          test -s site/example/riedel-mxl-sink-demo/build_container/index.html
+          test -s site/manifest/resource_manifest_video/index.html
+          test -s site/manifest/validate_manifest/index.html
+          grep -Fq "MxlMediaFunctionParameters" site/manifest/resource_manifest_video/index.html
 
       - name: Install lychee
         run: sudo snap install lychee
