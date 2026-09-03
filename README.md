@@ -19,7 +19,7 @@ A CRM manifest describes the compute, memory, storage, networking, accelerator, 
 ## Architecture & System Model
 
 CRM links design-time resource specification with runtime orchestration, deployment, and operational monitoring across four 
-primary architectural tiers as presented in the [JT-DMF-High-Level.pdf](./documentation/JT-DMF-High-Level.pdf):
+primary architectural tiers as presented in the [JT-DMF-High-Level.pdf](./docs/JT-DMF-High-Level.pdf):
 
 **Application and UI Tier:** High-level Media Workloads composed of one or more modular Applications.
 
@@ -104,6 +104,6 @@ The CRM manifest does not prescribe how an orchestration platform must be implem
 - documentation/: Supporting/legacy background material.
 - manifest/: Resource manifests and schema.
 - lib/: Code and submodules, including lib/mxl.
-- example/: Runtime examples and deployment assets.
+- examples/: Runtime examples and deployment assets.
 
 <!-- INTRO-END -->
