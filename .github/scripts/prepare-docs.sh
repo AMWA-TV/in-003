@@ -51,7 +51,7 @@ echo "Generated docs/index.md from README.md"
 #    in the Zensical source tree. Source assets are not copied into docs/;
 #    they are embedded in the generated source pages below.
 # ---------------------------------------------------------------------------
-for dir in example manifest; do
+for dir in examples manifest; do
     rm -rf "docs/${dir}"
     if [[ -d "${dir}" ]]; then
         while IFS= read -r -d '' source; do
@@ -62,7 +62,7 @@ for dir in example manifest; do
     fi
 done
 
-echo "Staged Markdown documentation from example/ and manifest/ in docs/"
+echo "Staged Markdown documentation from examples/ and manifest/ in docs/"
 
 # ---------------------------------------------------------------------------
 # 3. Generate Markdown pages for source files that Zensical cannot render
@@ -116,7 +116,7 @@ PY
     } > "${output}"
 }
 
-for root in example manifest; do
+for root in examples manifest; do
     if [[ -d "${root}" ]]; then
         while IFS= read -r -d '' source; do
             render_source_file "${source}"
@@ -124,7 +124,7 @@ for root in example manifest; do
     fi
 done
 
-echo "Generated editor-style source pages for example/ and manifest/"
+echo "Generated editor-style source pages for examples/ and manifest/"
 
 # ---------------------------------------------------------------------------
 # 4. Rewrite docs/*.md links that escape the docs/ tree to absolute GitHub URLs

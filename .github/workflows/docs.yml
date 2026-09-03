@@ -42,7 +42,7 @@ jobs:
           INPUT_REF: ${{ inputs.ref }}
         run: |
           git checkout "${INPUT_REF}" -- docs/ README.md
-          for dir in example manifest; do
+          for dir in examples manifest; do
             rm -rf "${dir}"
             if git cat-file -e "${INPUT_REF}:${dir}" 2>/dev/null; then
               git checkout "${INPUT_REF}" -- "${dir}"
@@ -75,8 +75,8 @@ jobs:
           ./.github/scripts/prepare-docs.sh
           test -s docs/index.md
           test "$(sed -n '1p' README.md)" = "$(sed -n '1p' docs/index.md)"
-          test -s docs/example/riedel-mxl-sink-demo/HOWTO.md
-          test -s docs/example/riedel-mxl-sink-demo/build_container.md
+          test -s docs/examples/riedel-mxl-sink-demo/HOWTO.md
+          test -s docs/examples/riedel-mxl-sink-demo/build_container.md
           test -s docs/manifest/resource_manifest_video.md
           test -s docs/manifest/validate_manifest.md
           grep -Fq "Expand all" docs/manifest/resource_manifest_video.md
@@ -86,9 +86,9 @@ jobs:
       - name: Verify landing page content
         run: grep -Fq "Compute Resource Management" site/index.html
 
-      - name: Verify example and manifest pages
+      - name: Verify examples and manifest pages
         run: |
-          test -s site/example/riedel-mxl-sink-demo/build_container/index.html
+          test -s site/examples/riedel-mxl-sink-demo/build_container/index.html
           test -s site/manifest/resource_manifest_video/index.html
           test -s site/manifest/validate_manifest/index.html
           grep -Fq "Expand all" site/manifest/resource_manifest_video/index.html

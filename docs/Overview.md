@@ -69,7 +69,7 @@ This approach allows resource requirements to be based on measured behavior rath
 
 ## Benefits
 
-Using a standardized CRM manifest enables:
+Using a published CRM manifest enables:
 - Vendors to describe resource requirements independently of the target platform.
 - Orchestrators to make informed placement and scheduling decisions.
 - Media Functions to be deployed consistently across heterogeneous infrastructure.
@@ -91,10 +91,10 @@ The CRM manifest does not prescribe how an orchestration platform must be implem
 
 ## Repository Layout
 
-- documentation/: Supporting/legacy background material.
+- docs/: Documentation and supporting background material.
 - manifest/: Resource manifests and schema.
 - lib/: Code and submodules, including lib/mxl.
-- example/: Runtime examples and deployment assets.
+- examples/: Runtime examples and deployment assets.
 
 ---
 
@@ -114,22 +114,6 @@ Media Functions are developed by many vendors, who leverage different deployment
   - Multiple Media Function instances per pod, where a logical Media Function instance is an independently configured session/channel/task, with some upper bounds on the number supported by each deployed pod `[N..1]`
 - Media Function kind-specific shared context and services (for example, asset storage)
 - Media Function kind-specific cluster-wide configuration and services (for example, site license server)
-
----
-
-## Real-World Deployment Patterns
-
-Media Function developers must be able to package their software components using their preferred virtualization technology:
-
-- Container-based
-  - Recommended for resource efficiency and orchestration tooling
-- VM-based
-  - Linux
-  - Windows (!)
-
-Resource requests, limits, and claims must be applied to individual containers (or VMs):
-
-- Logical Media Functions do not provide sufficient granularity
 
 ---
 
@@ -159,10 +143,9 @@ These characteristics can be used to plan connections between compatible inputs 
 
 ---
 
-## Reconciliation in Kubernetes
+## Level Trigger Pattern and Desired State Reconciliation
 
 *Based on: "Why Implementing Kubernetes Operators Is a Good Idea!" (Kubermatic)*
-
 
 ![Kubernetes Reconciliation](images/k8s-reconciliation.drawio.png) 
 
