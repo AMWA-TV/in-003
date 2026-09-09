@@ -47,12 +47,92 @@ sed -E \
 echo "Generated docs/index.md from README.md"
 
 # ---------------------------------------------------------------------------
-# 2. Rewrite docs/*.md links that escape the docs/ tree to absolute GitHub URLs
+# 2. Stage Markdown documentation from repository-root examples and manifests
+#    in the Zensical source tree. Source assets are not copied into docs/;
+#    they are embedded in the generated source pages below.
+# ---------------------------------------------------------------------------
+for dir in examples manifest; do
+    rm -rf "docs/${dir}"
+    if [[ -d "${dir}" ]]; then
+        while IFS= read -r -d '' source; do
+            destination="docs/${source}"
+            mkdir -p "$(dirname "${destination}")"
+            cp "${source}" "${destination}"
+        done < <(find "${dir}" -type f -name '*.md' -print0)
+    fi
+done
+
+echo "Staged Markdown documentation from examples/ and manifest/ in docs/"
+
+# ---------------------------------------------------------------------------
+# 3. Generate Markdown pages for source files that Zensical cannot render
+#    directly. The editor-style viewer keeps the original text and folds
+#    contiguous blocks based on source indentation.
+# ---------------------------------------------------------------------------
+render_source_file() {
+    local source="$1"
+    local relative="${source#./}"
+    local filename
+    local output="docs/${relative%.*}.md"
+    local language
+    local encoded
+
+    filename="$(basename "${source}")"
+
+    case "${source}" in
+        *.yaml|*.yml) language="yaml" ;;
+        *.py)         language="python" ;;
+        *.sh)         language="bash" ;;
+        Dockerfile|*/Dockerfile*) language="dockerfile" ;;
+        *)            return 0 ;;
+    esac
+
+    encoded="$(python3 - "${source}" <<'PY'
+import base64
+import sys
+
+with open(sys.argv[1], "rb") as source_file:
+    print(base64.b64encode(source_file.read()).decode("ascii"))
+PY
+)"
+
+    mkdir -p "$(dirname "${output}")"
+    {
+        printf '# `%s`\n\n' "${filename}"
+        printf '<div class="source-viewer" data-source="%s" data-language="%s">\n' "${encoded}" "${language}"
+        printf '  <label class="source-viewer-mode">View: <select data-source-mode>\n'
+        printf '    <option value="folding" selected>Folding</option>\n'
+        printf '    <option value="raw">Raw</option>\n'
+        printf '  </select></label>\n'
+        printf '  <div class="source-viewer-folding">\n'
+        printf '    <div class="source-viewer-controls" role="group" aria-label="Source controls">\n'
+        printf '      <button type="button" data-source-action="expand">Expand all</button>\n'
+        printf '      <button type="button" data-source-action="collapse">Collapse all</button>\n'
+        printf '    </div>\n'
+        printf '    <div class="source-editor" role="region" aria-label="Foldable source code"></div>\n'
+        printf '  </div>\n'
+        printf '  <pre class="source-viewer-raw" hidden><code></code></pre>\n'
+        printf '</div>\n'
+    } > "${output}"
+}
+
+for root in examples manifest; do
+    if [[ -d "${root}" ]]; then
+        while IFS= read -r -d '' source; do
+            render_source_file "${source}"
+        done < <(find "${root}" -type f -print0)
+    fi
+done
+
+echo "Generated editor-style source pages for examples/ and manifest/"
+
+# ---------------------------------------------------------------------------
+# 4. Rewrite docs/*.md links that escape the docs/ tree to absolute GitHub URLs
 #
 # Matches Markdown link targets of the form `](../<path>)`. The captured path
 # may contain further `../` segments (collapsed by the URL itself).
 #
-# 3. Remove lines relevant to Jekyll ToC processing
+# 5. Remove lines relevant to Jekyll ToC processing
 # ---------------------------------------------------------------------------
 shopt -s nullglob
 for f in docs/*.md; do

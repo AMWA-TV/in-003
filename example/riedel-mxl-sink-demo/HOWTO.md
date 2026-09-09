@@ -15,13 +15,12 @@ In short, the goal is to show how benchmark and profiling data can be turned int
 
 This document describes how to build the MXL container image, prepare the benchmarking environment, deploy the demo on a kind cluster with the memory-throughput DRA driver, and profile the running application.
 
-
 ## Requirements
 
-- Kind: <https://kind.sigs.k8s.io/>
-- helm: <https://helm.sh/docs/intro/install/>
+- [Kind](https://kind.sigs.k8s.io/)
+- [helm](https://helm.sh/docs/intro/install/)
 - Kubernetes v1.35 or greater
-- kubectl: <https://kubernetes.io/docs/tasks/tools/>
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
 
 ## 1. Benchmark the Host Machine
 
@@ -136,7 +135,7 @@ docker exec dra-memory-driver-cluster-worker sh -c "cd /dev/shm && mkdir mxl && 
 Start the demo:
 
 ```bash
-cd <DEMO_DIR>/jt-dmf-crm/examples/riedel-mxl-sink-demo/kubernetes/
+cd <DEMO_DIR>/jt-dmf-crm/example/riedel-mxl-sink-demo/kubernetes/
 kubectl apply --filename=kubernetes_mxl_player.yaml
 kubectl apply --filename=kubernetes_mxl_sink.yaml
 ```
@@ -144,7 +143,7 @@ kubectl apply --filename=kubernetes_mxl_sink.yaml
 Delete the demo:
 
 ```bash
-cd <DEMO_DIR>/jt-dmf-crm/examples/riedel-mxl-sink-demo/kubernetes/
+cd <DEMO_DIR>/jt-dmf-crm/example/riedel-mxl-sink-demo/kubernetes/
 kubectl delete --filename=kubernetes_mxl_player.yaml
 kubectl delete --filename=kubernetes_mxl_sink.yaml
 ```
@@ -195,8 +194,7 @@ Measure throughput with `mxl-sink` running:
 Stop `mxl-sink` and run the measurement again with the producers only:
 
 ```bash
-kubectl delete --filename=<DEMO_DIR>/jt-dmf-crm/examples/riedel-mxl-sink-demo/kubernetes/kubernetes_mxl_sink.yaml
+kubectl delete --filename=<DEMO_DIR>/jt-dmf-crm/example/riedel-mxl-sink-demo/kubernetes/kubernetes_mxl_sink.yaml
 ./bin/pcm-memory -i=10 -csv
 ```
 
-This completes the benchmark comparison.
