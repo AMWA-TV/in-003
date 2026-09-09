@@ -26,12 +26,21 @@ jobs:
       # under /new/ so we don't overwrite the current production site.
       SPEC_SERVER: specs.amwa.tv
       SITE_NAME: in-003
+      TOOLKIT_DIR: .amwa-spec-docs
     steps:
       # Always check out the ref that triggered the run (or main, for dispatch)
       # so we get the current workflow infrastructure (.github/scripts, etc.).
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      - name: Check out shared AMWA documentation toolkit
+        uses: actions/checkout@v5
+        with:
+          repository: AMWA-TV/amwa-spec-docs
+          ref: main
+          path: .amwa-spec-docs
+          fetch-depth: 1
 
       # If the user dispatched with a specific ref, overlay only the docs
       # sources from that ref. We keep main's .github/ so prepare-docs.sh
@@ -81,10 +90,20 @@ jobs:
           test -s docs/manifest/validate_manifest.md
           grep -Fq "Expand all" docs/manifest/resource_manifest_video.md
 
+      - name: Apply shared AMWA branding
+        run: |
+          bash "${TOOLKIT_DIR}/scripts/apply-branding.sh"
+          test -s docs/images/AMWA-logo.png
+          grep -Fq "https://www.amwa.tv" docs/javascripts/amwa-branding.js
+
       - run: zensical build --clean
 
       - name: Verify landing page content
-        run: grep -Fq "Compute Resource Management" site/index.html
+        run: |
+          grep -Fq "Compute Resource Management" site/index.html
+          test -s site/images/AMWA-logo.png
+          grep -Fq "stylesheets/amwa-branding.css" site/index.html
+          grep -Fq "javascripts/amwa-branding.js" site/index.html
 
       - name: Verify examples and manifest pages
         run: |
