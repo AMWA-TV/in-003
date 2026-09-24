@@ -110,8 +110,8 @@ Media Functions are developed by many vendors, who leverage different deployment
 ### More complex Media Functions can have:
 
 - Either/or:
-  - Multiple pods per Media Function instance `[1..N]`
-  - Multiple Media Function instances per pod, where a logical Media Function instance is an independently configured session/channel/task, with some upper bounds on the number supported by each deployed pod `[N..1]`
+    - Multiple pods per Media Function instance `[1..N]`
+    - Multiple Media Function instances per pod, where a logical Media Function instance is an independently configured session/channel/task, with some upper bounds on the number supported by each deployed pod `[N..1]`
 - Media Function kind-specific shared context and services (for example, asset storage)
 - Media Function kind-specific cluster-wide configuration and services (for example, site license server)
 
@@ -125,9 +125,9 @@ Media Functions are developed by many vendors, who leverage different deployment
 
 - Represents a particular configured instance or session of a well-defined unit of functionality that produces and/or consumes a tightly coupled group of one or more live media streams.
 - The particular vendor/product Media Function specification defines the input and output characteristics, such as:
-  - Control type (NMOS, etc.)
-  - Transport (MXL, etc.)
-  - Media format type and properties
+    - Control type (NMOS, etc.)
+    - Transport (MXL, etc.)
+    - Media format type and properties
 
 These characteristics can be used to plan connections between compatible inputs and outputs.
 
