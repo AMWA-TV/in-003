@@ -31,3 +31,10 @@ This work artifact is published as an **AMWA Increment (IN)**. Increments are in
 
 <!-- INTRO-END -->
 
+## Repository Layout
+
+- documentation/: Supporting background material.
+- manifest/: Resource manifests and schema.
+- lib/: Code and submodules, including lib/mxl.
+- examples/: Runtime examples and deployment assets.
+
